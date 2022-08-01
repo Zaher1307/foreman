@@ -3,17 +3,28 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
+const (
+    notActive = false
+    active    = true
+)
+
+type SystemStatus bool
+
 type Foreman struct {
     services map[string]Service
+    status SystemStatus
 }
 
 type Service struct {
     serviceName string
+    process *os.Process
     cmd string
+    args []string
     runOnce bool
     deps []string
     checks Checks
@@ -21,6 +32,7 @@ type Service struct {
 
 type Checks struct {
     cmd string
+    args []string
     tcpPorts []string
     udpPorts []string
 }
@@ -29,6 +41,7 @@ func New(procfilePath string) (*Foreman, error) {
 
     foreman := &Foreman{
     	services: map[string]Service{},
+        status: active,
     }
 
     procfileData, err := os.ReadFile(procfilePath)
@@ -60,7 +73,7 @@ func parseService(serviceMap map[string]any, out *Service) {
     for key, value := range serviceMap {
         switch key {
         case "cmd":
-            out.cmd = value.(string)
+            out.cmd, out.args = parseArgs(value.(string))
         case "run_once":
             out.runOnce = value.(bool)
         case "deps":
@@ -72,6 +85,11 @@ func parseService(serviceMap map[string]any, out *Service) {
         }
     }
 
+}
+
+func parseArgs(cmd string) (string, []string) {
+    cmdList := strings.Split(cmd, " ")
+    return cmdList[0], cmdList[1:]
 }
 
 func parseDeps(deps any) []string {
@@ -94,7 +112,7 @@ func parseCheck(check any, out *Checks)  {
     for key, value := range checkMap {
         switch key {
         case "cmd":
-            out.cmd = value.(string)
+            out.cmd, out.args = parseArgs(value.(string))
         case "tcp_ports":
             out.tcpPorts = parsePorts(value)
         case "udp_ports":
