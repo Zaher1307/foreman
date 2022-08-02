@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -129,7 +130,9 @@ func (foreman *Foreman) StartServices() error {
 
 func (foreman *Foreman) startService(serviceName string) error {
 
-	ticker := time.NewTicker(time.Millisecond)
+	fmt.Printf("process %s has been started\n", serviceName)
+
+	ticker := time.NewTicker(time.Second)
 	service := foreman.services[serviceName]
 	serviceExec := exec.Command(service.cmd, service.args...)
 
@@ -141,21 +144,35 @@ func (foreman *Foreman) startService(serviceName string) error {
 	service.process = serviceExec.Process
 	foreman.services[serviceName] = service
 	
-	if !service.runOnce {
-		go func() {
+	go func() {
 
-			for {
-				<- ticker.C
+		for {
+			<- ticker.C
+
+			go func() {
+
 				checkExec := exec.Command(service.checks.cmd, service.checks.args...)
 				err := checkExec.Run()
-				checkExec.Process.Wait()
+				fmt.Printf("check process %s has been started\n", service.checks.cmd)
 				if err != nil {
 					syscall.Kill(service.process.Pid, syscall.SIGINT)
 				}
-			}
+				checkExec.Process.Wait()
+				fmt.Printf("check process %s has been reaped\n", service.checks.cmd)
 
-		}()
-	}
+			}()
+
+			if service.runOnce {
+				processPid := serviceExec.Process.Pid
+				sameProcess, _ := process.NewProcess(int32(processPid))
+				processStatus, _ := sameProcess.Status()
+				if processStatus == "Z" {
+					break
+				}
+			}
+		}
+
+	}()
 
 	return nil
 
@@ -167,6 +184,7 @@ func (foreman *Foreman) sigChldHandler() {
 		childProcess, _ := process.NewProcess(int32(service.process.Pid))
 		processStatus, _ := childProcess.Status()
 		if processStatus == "Z" {
+			fmt.Printf("process %s has been reaped\n", service.serviceName)
 			service.process.Wait()
 			if foreman.status == active && !service.runOnce {
 				foreman.startService(service.serviceName)
