@@ -1,17 +1,17 @@
 app1:
   cmd: ping -c 5 google.com 
   checks:
-    cmd: ping -c 1 google.com
+    cmd: sleep 1
   deps: 
       - redis
 
-app2:
-  cmd: ping -c 5 example.com 
-  run_once: true
-  checks:
-    cmd: ping -c 1 example.com
-  deps: 
-      - app1
+# app2:
+#   cmd: ping -c 5 example.com 
+#   run_once: true
+#   checks:
+#     cmd: ping -c 1 example.com
+#   deps: 
+#       - app1
 
 redis:
   cmd: redis-server --port 6010
