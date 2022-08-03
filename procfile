@@ -1,7 +1,7 @@
 service_ping:
-  cmd: ping -c 20 google.com 
+  cmd: ping -c 5 google.com 
   checks:
-    cmd: ping -c 1 google.com
+    cmd: ls
   deps: 
       - service_redis
 
@@ -13,7 +13,7 @@ service_sleep:
       - service_ping
 
 service_redis:
-  cmd: redis-server --port 6010
+  cmd: redis-server --port 8080
   run_once: true
   checks:
-    cmd: redis-cli -p 6010 ping
+    cmd: redis-cli -p 8080 ping
