@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"syscall"
 	"time"
 
@@ -29,6 +30,8 @@ func (foreman *Foreman) StartServices() error {
 			return err
 		}
 	}
+
+	signal.Notify(signalChan, syscall.SIGCHLD, syscall.SIGINT)
 
 	for {
 		signal := <- signalChan
@@ -103,6 +106,7 @@ func (foreman *Foreman) sigChldHandler() {
 			fmt.Printf("process %s has been reaped\n", service.serviceName)
 			service.process.Wait()
 			if foreman.status == active && !service.runOnce {
+				fmt.Printf("process %s is restarting\n", service.serviceName)
 				foreman.startService(service.serviceName)
 			}
 		}
