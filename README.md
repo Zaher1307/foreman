@@ -11,13 +11,21 @@ Foreman is a manager for [Procfile-based](https://en.wikipedia.org/wiki/Procfs) 
 ## Procfile
 Procfile is simply `key: value` format like:
 ```yaml
-app:
-  cmd: ping -c 5 google.com 
+service_ping:
+  cmd: ping -c 20 google.com 
+  checks:
+    cmd: ping -c 1 google.com
+  deps: 
+      - service_redis
+
+service_sleep:
+  cmd: sleep infinity
   checks:
     cmd: sleep 1
   deps: 
-      - redis
-redis:
+      - service_ping
+
+service_redis:
   cmd: redis-server --port 6010
   run_once: true
   checks:
