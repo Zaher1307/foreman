@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/signal"
 	"syscall"
 	"time"
 
@@ -21,6 +20,7 @@ const (
 type Graph map[string][]string
 type State map[string]int
 
+// helper for topologicalSort function
 func topologicalSortHelper(node string, state State, sortedDependency *[]string, graph Graph) {
 
 	if state[node] == Visited {
@@ -37,6 +37,7 @@ func topologicalSortHelper(node string, state State, sortedDependency *[]string,
 
 }
 
+// simple dfs function
 func dfs(node string, state State, graph Graph) bool {
 
 	can := true
@@ -60,6 +61,7 @@ func dfs(node string, state State, graph Graph) bool {
 
 }
 
+// building dependency graph for processes
 func (foreman *Foreman) buildDependencyGraph() Graph {
 
 	graph := make(Graph)
@@ -72,6 +74,7 @@ func (foreman *Foreman) buildDependencyGraph() Graph {
 
 }
 
+// check if there is a cycle in the dependency graph
 func (graph Graph) isCycleFree() bool {
 
 	state := make(State)
@@ -85,6 +88,7 @@ func (graph Graph) isCycleFree() bool {
 
 }
 
+// sort dependency graph
 func (graph Graph) topologicalSort() []string {
 
 	sortedDependency := make([]string, 0)
@@ -98,6 +102,7 @@ func (graph Graph) topologicalSort() []string {
 
 }
 
+// start all services from yaml file
 func (foreman *Foreman) StartServices() error {
 
 	signalChan := make(chan os.Signal, 1)
@@ -116,18 +121,19 @@ func (foreman *Foreman) StartServices() error {
 		}
 	}
 
-	signal.Notify(signalChan, syscall.SIGCHLD)
-
 	for {
 		signal := <- signalChan
 		switch signal {
 		case syscall.SIGCHLD:
 			foreman.sigChldHandler()
+		case syscall.SIGINT:
+			foreman.sigIntHandler()
 		}
 	}
 
 }
 
+// start one service and wait for it
 func (foreman *Foreman) startService(serviceName string) error {
 
 	fmt.Printf("process %s has been started\n", serviceName)
@@ -178,6 +184,7 @@ func (foreman *Foreman) startService(serviceName string) error {
 
 }
 
+// handler for signal child for child process
 func (foreman *Foreman) sigChldHandler() {
 
 	for _, service := range foreman.services {
@@ -194,4 +201,13 @@ func (foreman *Foreman) sigChldHandler() {
 
 }
 
+// handler for signal interrupt for any process
+func (foreman *Foreman) sigIntHandler() {
 
+  foreman.status = notActive
+  for _, service := range foreman.services {
+    syscall.Kill(service.process.Pid, syscall.SIGINT)
+  }
+  os.Exit(0)
+
+}
