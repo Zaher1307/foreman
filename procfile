@@ -1,7 +1,7 @@
 service_ping:
   cmd: ping -c 5 google.com 
   checks:
-    cmd: ls
+    cmd: ps aux | grep google
   deps: 
       - service_redis
 
