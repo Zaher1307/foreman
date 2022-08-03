@@ -14,7 +14,7 @@ Procfile is simply `key: value` format like:
 service_ping:
   cmd: ping -c 20 google.com 
   checks:
-    cmd: ping -c 1 google.com
+    cmd: ps aux | grep google
   deps: 
       - service_redis
 
