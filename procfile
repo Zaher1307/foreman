@@ -1,21 +1,19 @@
-app1:
-  cmd: ping -c 5 google.com 
+service_ping:
+  cmd: ping -c 20 google.com 
+  checks:
+    cmd: ping -c 1 google.com
+  deps: 
+      - service_redis
+
+service_sleep:
+  cmd: sleep infinity
   checks:
     cmd: sleep 1
   deps: 
-      - redis
+      - service_ping
 
-# app2:
-#   cmd: ping -c 5 example.com 
-#   run_once: true
-#   checks:
-#     cmd: ping -c 1 example.com
-#   deps: 
-#       - app1
-
-redis:
+service_redis:
   cmd: redis-server --port 6010
   run_once: true
   checks:
     cmd: redis-cli -p 6010 ping
-    tcp_ports: [6010] 
