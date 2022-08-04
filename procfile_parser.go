@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"os"
+    "fmt"
+    "os"
 
-	"gopkg.in/yaml.v3"
+    "gopkg.in/yaml.v3"
 )
 
 const (
@@ -37,7 +37,7 @@ type Checks struct {
 func New(procfilePath string) (*Foreman, error) {
 
     foreman := &Foreman{
-    	services: map[string]Service{},
+        services: map[string]Service{},
         status: active,
     }
 
@@ -54,7 +54,7 @@ func New(procfilePath string) (*Foreman, error) {
 
     for key, value := range procfileMap {
         service := Service{
-        	serviceName: key,
+            serviceName: key,
         }
 
         parseService(value, &service)
@@ -122,7 +122,7 @@ func parsePorts(ports any) []string {
     for _, port := range portsList {
         resultList = append(resultList, fmt.Sprint(port.(int)))
     }
-    
+
     return resultList
 
 }

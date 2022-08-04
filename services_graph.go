@@ -82,7 +82,7 @@ func (graph Graph) topologicalSort() []string {
 
 	sortedDependency := make([]string, 0)
 	state := make(State)
-	
+
 	for node := range graph {
 		topologicalSortHelper(node, state, &sortedDependency, graph)
 	}

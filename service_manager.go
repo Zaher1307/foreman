@@ -63,12 +63,12 @@ func (foreman *Foreman) startService(serviceName string) error {
 
 	service.process = serviceExec.Process
 	foreman.services[serviceName] = service
-	
+
 	go func() {
 
 		for {
 			<- ticker.C
-			
+
 			go service.checker()
 
 			if service.runOnce {
@@ -108,11 +108,11 @@ func (foreman *Foreman) sigChldHandler() {
 // handler for signal interrupt for any process
 func (foreman *Foreman) sigIntHandler() {
 
-  foreman.status = notActive
-  for _, service := range foreman.services {
-    syscall.Kill(service.process.Pid, syscall.SIGINT)
-  }
-  os.Exit(0)
+	foreman.status = notActive
+	for _, service := range foreman.services {
+		syscall.Kill(service.process.Pid, syscall.SIGINT)
+	}
+	os.Exit(0)
 
 }
 
@@ -128,29 +128,29 @@ func (service *Service) checker() {
 	fmt.Printf("check process %s has been reaped\n", service.checks.cmd)
 
 	ports := service.checks.tcpPorts
-    for _, port := range ports {
-      cmd := fmt.Sprintf("netstat -lnptu | grep tcp | grep %s -m 1 | awk '{print $7}'", port)
-      out, _ := exec.Command("bash", "-c", cmd).Output()
-      pid, err := strconv.Atoi(strings.Split(string(out), "/")[0])
+	for _, port := range ports {
+		cmd := fmt.Sprintf("netstat -lnptu | grep tcp | grep %s -m 1 | awk '{print $7}'", port)
+		out, _ := exec.Command("bash", "-c", cmd).Output()
+		pid, err := strconv.Atoi(strings.Split(string(out), "/")[0])
 
-      if err != nil || pid != service.process.Pid {
-        fmt.Println(service.serviceName + " checher failed")
-        syscall.Kill(service.process.Pid, syscall.SIGINT)
-        return
-      }
-    }
+		if err != nil || pid != service.process.Pid {
+			fmt.Println(service.serviceName + " checher failed")
+			syscall.Kill(service.process.Pid, syscall.SIGINT)
+			return
+		}
+	}
 
-    ports = service.checks.udpPorts
-    for _, port := range ports {
-      cmd := fmt.Sprintf("netstat -lnptu | grep udp | grep %s -m 1 | awk '{print $7}'", port)
-      out, _ := exec.Command("bash", "-c", cmd).Output()
-      pid, err := strconv.Atoi(strings.Split(string(out), "/")[0])
-      if err != nil  || pid != service.process.Pid {
-        fmt.Println(service.serviceName + " checher failed")
-        syscall.Kill(service.process.Pid, syscall.SIGINT)
-        return
-      }
+	ports = service.checks.udpPorts
+	for _, port := range ports {
+		cmd := fmt.Sprintf("netstat -lnptu | grep udp | grep %s -m 1 | awk '{print $7}'", port)
+		out, _ := exec.Command("bash", "-c", cmd).Output()
+		pid, err := strconv.Atoi(strings.Split(string(out), "/")[0])
+		if err != nil  || pid != service.process.Pid {
+			fmt.Println(service.serviceName + " checher failed")
+			syscall.Kill(service.process.Pid, syscall.SIGINT)
+			return
+		}
 
-    }
+	}
 
 }
