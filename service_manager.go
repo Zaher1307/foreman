@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -66,19 +68,8 @@ func (foreman *Foreman) startService(serviceName string) error {
 
 		for {
 			<- ticker.C
-
-			go func() {
-
-				checkExec := exec.Command("bash", "-c", service.checks.cmd)
-				err := checkExec.Run()
-				fmt.Printf("check process %s has been started\n", service.checks.cmd)
-				if err != nil {
-					syscall.Kill(service.process.Pid, syscall.SIGINT)
-				}
-				checkExec.Process.Wait()
-				fmt.Printf("check process %s has been reaped\n", service.checks.cmd)
-
-			}()
+			
+			go service.checker()
 
 			if service.runOnce {
 				processPid := serviceExec.Process.Pid
@@ -122,5 +113,44 @@ func (foreman *Foreman) sigIntHandler() {
     syscall.Kill(service.process.Pid, syscall.SIGINT)
   }
   os.Exit(0)
+
+}
+
+func (service *Service) checker() {
+
+	checkExec := exec.Command("bash", "-c", service.checks.cmd)
+	err := checkExec.Run()
+	fmt.Printf("check process %s has been started\n", service.checks.cmd)
+	if err != nil {
+		syscall.Kill(service.process.Pid, syscall.SIGINT)
+	}
+	checkExec.Process.Wait()
+	fmt.Printf("check process %s has been reaped\n", service.checks.cmd)
+
+	ports := service.checks.tcpPorts
+    for _, port := range ports {
+      cmd := fmt.Sprintf("netstat -lnptu | grep tcp | grep %s -m 1 | awk '{print $7}'", port)
+      out, _ := exec.Command("bash", "-c", cmd).Output()
+      pid, err := strconv.Atoi(strings.Split(string(out), "/")[0])
+
+      if err != nil || pid != service.process.Pid {
+        fmt.Println(service.serviceName + " checher failed")
+        syscall.Kill(service.process.Pid, syscall.SIGINT)
+        return
+      }
+    }
+
+    ports = service.checks.udpPorts
+    for _, port := range ports {
+      cmd := fmt.Sprintf("netstat -lnptu | grep udp | grep %s -m 1 | awk '{print $7}'", port)
+      out, _ := exec.Command("bash", "-c", cmd).Output()
+      pid, err := strconv.Atoi(strings.Split(string(out), "/")[0])
+      if err != nil  || pid != service.process.Pid {
+        fmt.Println(service.serviceName + " checher failed")
+        syscall.Kill(service.process.Pid, syscall.SIGINT)
+        return
+      }
+
+    }
 
 }
