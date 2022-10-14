@@ -11,7 +11,6 @@ type State map[string]int
 
 // helper for topologicalSort function
 func topologicalSortHelper(node string, state State, sortedDependency *[]string, graph Graph) {
-
 	if state[node] == Visited {
 		return
 	}
@@ -23,12 +22,10 @@ func topologicalSortHelper(node string, state State, sortedDependency *[]string,
 	}
 
 	*sortedDependency = append(*sortedDependency, node)
-
 }
 
 // simple dfs function
 func dfs(node string, state State, graph Graph) bool {
-
 	can := true
 
 	if state[node] == Visited {
@@ -47,12 +44,10 @@ func dfs(node string, state State, graph Graph) bool {
 	state[node] = Visited
 
 	return can
-
 }
 
 // building dependency graph for processes
 func (foreman *Foreman) buildDependencyGraph() Graph {
-
 	graph := make(Graph)
 
 	for _, service := range foreman.services {
@@ -60,12 +55,10 @@ func (foreman *Foreman) buildDependencyGraph() Graph {
 	}
 
 	return graph
-
 }
 
 // check if there is a cycle in the dependency graph
 func (graph Graph) isCycleFree() bool {
-
 	state := make(State)
 	cycleFree := true
 
@@ -74,12 +67,10 @@ func (graph Graph) isCycleFree() bool {
 	}
 
 	return cycleFree
-
 }
 
 // sort dependency graph
 func (graph Graph) topologicalSort() []string {
-
 	sortedDependency := make([]string, 0)
 	state := make(State)
 
@@ -88,7 +79,4 @@ func (graph Graph) topologicalSort() []string {
 	}
 
 	return sortedDependency
-
 }
-
-

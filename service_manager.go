@@ -16,7 +16,6 @@ import (
 
 // start all services from yaml file
 func (foreman *Foreman) StartServices() error {
-
 	signalChan := make(chan os.Signal, 1)
 	graph := foreman.buildDependencyGraph()
 
@@ -36,7 +35,7 @@ func (foreman *Foreman) StartServices() error {
 	signal.Notify(signalChan, syscall.SIGCHLD, syscall.SIGINT)
 
 	for {
-		signal := <- signalChan
+		signal := <-signalChan
 		switch signal {
 		case syscall.SIGCHLD:
 			foreman.sigChldHandler()
@@ -44,12 +43,10 @@ func (foreman *Foreman) StartServices() error {
 			foreman.sigIntHandler()
 		}
 	}
-
 }
 
 // start one service and wait for it
 func (foreman *Foreman) startService(serviceName string) error {
-
 	fmt.Printf("process %s has been started\n", serviceName)
 
 	ticker := time.NewTicker(time.Second)
@@ -67,7 +64,7 @@ func (foreman *Foreman) startService(serviceName string) error {
 	go func() {
 
 		for {
-			<- ticker.C
+			<-ticker.C
 
 			go service.checker()
 
@@ -84,12 +81,10 @@ func (foreman *Foreman) startService(serviceName string) error {
 	}()
 
 	return nil
-
 }
 
 // handler for signal child for child process
 func (foreman *Foreman) sigChldHandler() {
-
 	for _, service := range foreman.services {
 		childProcess, _ := process.NewProcess(int32(service.process.Pid))
 		processStatus, _ := childProcess.Status()
@@ -102,22 +97,18 @@ func (foreman *Foreman) sigChldHandler() {
 			}
 		}
 	}
-
 }
 
 // handler for signal interrupt for any process
 func (foreman *Foreman) sigIntHandler() {
-
 	foreman.status = notActive
 	for _, service := range foreman.services {
 		syscall.Kill(service.process.Pid, syscall.SIGINT)
 	}
 	os.Exit(0)
-
 }
 
 func (service *Service) checker() {
-
 	checkExec := exec.Command("bash", "-c", service.checks.cmd)
 	err := checkExec.Run()
 	fmt.Printf("check process %s has been started\n", service.checks.cmd)
@@ -145,12 +136,11 @@ func (service *Service) checker() {
 		cmd := fmt.Sprintf("netstat -lnptu | grep udp | grep %s -m 1 | awk '{print $7}'", port)
 		out, _ := exec.Command("bash", "-c", cmd).Output()
 		pid, err := strconv.Atoi(strings.Split(string(out), "/")[0])
-		if err != nil  || pid != service.process.Pid {
+		if err != nil || pid != service.process.Pid {
 			fmt.Println(service.serviceName + " checher failed")
 			syscall.Kill(service.process.Pid, syscall.SIGINT)
 			return
 		}
 
 	}
-
 }

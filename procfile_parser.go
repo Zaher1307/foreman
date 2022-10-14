@@ -1,128 +1,118 @@
 package main
 
 import (
-    "fmt"
-    "os"
+	"fmt"
+	"os"
 
-    "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 const (
-    notActive = false
-    active    = true
+	notActive = false
+	active    = true
 )
 
 type SystemStatus bool
 
 type Foreman struct {
-    services map[string]Service
-    status SystemStatus
+	services map[string]Service
+	status   SystemStatus
 }
 
 type Service struct {
-    serviceName string
-    process *os.Process
-    cmd string
-    runOnce bool
-    deps []string
-    checks Checks
+	serviceName string
+	process     *os.Process
+	cmd         string
+	runOnce     bool
+	deps        []string
+	checks      Checks
 }
 
 type Checks struct {
-    cmd string
-    tcpPorts []string
-    udpPorts []string
+	cmd      string
+	tcpPorts []string
+	udpPorts []string
 }
 
 func New(procfilePath string) (*Foreman, error) {
+	foreman := &Foreman{
+		services: map[string]Service{},
+		status:   active,
+	}
 
-    foreman := &Foreman{
-        services: map[string]Service{},
-        status: active,
-    }
+	procfileData, err := os.ReadFile(procfilePath)
+	if err != nil {
+		return nil, err
+	}
 
-    procfileData, err := os.ReadFile(procfilePath)
-    if err != nil {
-        return nil, err
-    }
+	procfileMap := map[string]map[string]any{}
+	err = yaml.Unmarshal(procfileData, procfileMap)
+	if err != nil {
+		return nil, err
+	}
 
-    procfileMap := map[string]map[string]any{}
-    err = yaml.Unmarshal(procfileData, procfileMap)
-    if err != nil {
-        return nil, err
-    }
+	for key, value := range procfileMap {
+		service := Service{
+			serviceName: key,
+		}
 
-    for key, value := range procfileMap {
-        service := Service{
-            serviceName: key,
-        }
+		parseService(value, &service)
+		foreman.services[key] = service
+	}
 
-        parseService(value, &service)
-        foreman.services[key] = service
-    }
-
-    return foreman, nil
-
+	return foreman, nil
 }
 
 func parseService(serviceMap map[string]any, out *Service) {
-
-    for key, value := range serviceMap {
-        switch key {
-        case "cmd":
-            out.cmd = value.(string)
-        case "run_once":
-            out.runOnce = value.(bool)
-        case "deps":
-            out.deps = parseDeps(value)
-        case "checks":
-            checks := Checks{}
-            parseCheck(value, &checks)
-            out.checks = checks
-        }
-    }
-
+	for key, value := range serviceMap {
+		switch key {
+		case "cmd":
+			out.cmd = value.(string)
+		case "run_once":
+			out.runOnce = value.(bool)
+		case "deps":
+			out.deps = parseDeps(value)
+		case "checks":
+			checks := Checks{}
+			parseCheck(value, &checks)
+			out.checks = checks
+		}
+	}
 }
 
 func parseDeps(deps any) []string {
+	var resultList []string
+	depsList := deps.([]any)
 
-    var resultList []string
-    depsList := deps.([]any)
+	for _, dep := range depsList {
+		resultList = append(resultList, dep.(string))
+	}
 
-    for _, dep := range depsList {
-        resultList = append(resultList, dep.(string))
-    }
-
-    return resultList
-
+	return resultList
 }
 
-func parseCheck(check any, out *Checks)  {
+func parseCheck(check any, out *Checks) {
+	checkMap := check.(map[string]any)
 
-    checkMap := check.(map[string]any)
-
-    for key, value := range checkMap {
-        switch key {
-        case "cmd":
-            out.cmd = value.(string)
-        case "tcp_ports":
-            out.tcpPorts = parsePorts(value)
-        case "udp_ports":
-            out.udpPorts = parsePorts(value)
-        }
-    }
-
+	for key, value := range checkMap {
+		switch key {
+		case "cmd":
+			out.cmd = value.(string)
+		case "tcp_ports":
+			out.tcpPorts = parsePorts(value)
+		case "udp_ports":
+			out.udpPorts = parsePorts(value)
+		}
+	}
 }
 
 func parsePorts(ports any) []string {
+	var resultList []string
+	portsList := ports.([]any)
 
-    var resultList []string
-    portsList := ports.([]any)
+	for _, port := range portsList {
+		resultList = append(resultList, fmt.Sprint(port.(int)))
+	}
 
-    for _, port := range portsList {
-        resultList = append(resultList, fmt.Sprint(port.(int)))
-    }
-
-    return resultList
-
+	return resultList
 }
