@@ -1,6 +1,11 @@
 package main
 
+import "fmt"
+
 func main() {
 	foreman, _ := New("./procfile")
-	foreman.StartServices()
+	err := foreman.StartServices()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }

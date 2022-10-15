@@ -16,7 +16,6 @@ type SystemStatus bool
 
 type Foreman struct {
 	services map[string]Service
-	status   SystemStatus
 }
 
 type Service struct {
@@ -37,7 +36,6 @@ type Checks struct {
 func New(procfilePath string) (*Foreman, error) {
 	foreman := &Foreman{
 		services: map[string]Service{},
-		status:   active,
 	}
 
 	procfileData, err := os.ReadFile(procfilePath)
