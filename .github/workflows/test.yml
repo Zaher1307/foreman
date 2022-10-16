@@ -2,7 +2,7 @@ name: foreman tests
 
 on:
   push:
-    branches: [ development ]
+    branches: [ main ]
 
 jobs:
 
@@ -17,7 +17,7 @@ jobs:
         go-version: 1.18
 
     - name: run unit tests
-      run: go test ./*.go
+      run: go test ./pkg/*.go
 
     - name: run integration test
-      run: ./integration_test.sh
+      run: ./tests/integration_test.sh
