@@ -2,11 +2,11 @@ package main
 
 import "testing"
 
-const testCyclicProcfile = "./procfile_cyclic_test"
+const testCyclicProcfile = "./procfiles/procfile_cyclic_test"
 
 func TestBuildDependencyGraph(t *testing.T) {
 	t.Run("build basic dependency graph", func(t *testing.T) {
-		foreman, _ := New("./procfile")
+		foreman, _ := New("./procfiles/procfile")
 
 		got := foreman.buildDependencyGraph()
 		want := make(Graph)
@@ -38,7 +38,7 @@ func TestIsCyclic(t *testing.T) {
 }
 
 func TestTopSort(t *testing.T) {
-	foreman, _ := New("./procfile")
+	foreman, _ := New("./procfiles/procfile")
 	depGraph := foreman.buildDependencyGraph()
 	got := depGraph.topologicalSort()
 	assertTopSortResult(t, foreman, got)

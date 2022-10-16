@@ -3,8 +3,8 @@ package main
 import "testing"
 
 const (
-	testProcfile    = "./procfile_test"
-	testBadProcfile = "./procfile_bad_test"
+	testProcfile    = "./procfiles/procfile_test"
+	testBadProcfile = "./procfiles/procfile_bad_test"
 )
 
 func TestNew(t *testing.T) {
