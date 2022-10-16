@@ -47,10 +47,10 @@ func dfs(node string, state State, graph Graph) bool {
 }
 
 // building dependency graph for processes
-func (foreman *Foreman) buildDependencyGraph() Graph {
+func (f *Foreman) buildDependencyGraph() Graph {
 	graph := make(Graph)
 
-	for _, service := range foreman.services {
+	for _, service := range f.services {
 		graph[service.serviceName] = service.deps
 	}
 
@@ -58,24 +58,24 @@ func (foreman *Foreman) buildDependencyGraph() Graph {
 }
 
 // check if there is a cycle in the dependency graph
-func (graph Graph) isCycleFree() bool {
+func (g Graph) isCycleFree() bool {
 	state := make(State)
 	cycleFree := true
 
-	for node := range graph {
-		cycleFree = cycleFree && dfs(node, state, graph)
+	for node := range g {
+		cycleFree = cycleFree && dfs(node, state, g)
 	}
 
 	return cycleFree
 }
 
 // sort dependency graph
-func (graph Graph) topologicalSort() []string {
+func (g Graph) topologicalSort() []string {
 	sortedDependency := make([]string, 0)
 	state := make(State)
 
-	for node := range graph {
-		topologicalSortHelper(node, state, &sortedDependency, graph)
+	for node := range g {
+		topologicalSortHelper(node, state, &sortedDependency, g)
 	}
 
 	return sortedDependency

@@ -11,7 +11,6 @@ func TestNew(t *testing.T) {
 	t.Run("Parse existing procfile with correct syntax", func(t *testing.T) {
 		want := Foreman{
 			services: map[string]Service{},
-			status:   true,
 		}
 		sleeper := Service{
 			serviceName: "sleeper",

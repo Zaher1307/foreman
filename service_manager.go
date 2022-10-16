@@ -56,11 +56,7 @@ func (f *Foreman) startService(serviceName string) {
 		service.process = serviceExec.Process
 		f.services[serviceName] = service
 
-		err := serviceExec.Run()
-		if err != nil && err.Error() != "signal: terminated" {
-			fmt.Println("process " + serviceName + " has an error: " + err.Error())
-			return
-		}
+		serviceExec.Run()
 		fmt.Printf("process %s has been terminated\n", serviceName)
 		if service.runOnce {
 			break
@@ -78,7 +74,7 @@ func (f *Foreman) startService(serviceName string) {
 	}
 }
 
-// private function to check services from check command 
+// private function to check services from check command
 func (s *Service) checker() bool {
 	checkExec := exec.Command("bash", "-c", s.checks.cmd)
 	fmt.Printf("check process %s has been started\n", s.checks.cmd)

@@ -7,13 +7,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	notActive = false
-	active    = true
-)
-
-type SystemStatus bool
-
 type Foreman struct {
 	services map[string]Service
 }

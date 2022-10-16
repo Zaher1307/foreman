@@ -16,8 +16,6 @@ TestRestartAfterTermination() {
     else
         echo "TestRestartAfterTermination: TEST PASSED"
     fi
-
-    Clean
 }
 
 TestTerminateRunOnceService() {
@@ -36,8 +34,6 @@ TestTerminateRunOnceService() {
         Clean
         exit 1
     fi
-
-    Clean
 }
 
 TestTerminationOnBrockenDependency() {
@@ -62,7 +58,7 @@ TestTerminationOnBrockenDependency() {
 
 Clean() {
     foreman=$(ps | grep "foreman" | awk '{print $1}')
-    kill -SIGINT $foreman
+    kill -SIGTERM $foreman
 }
 
 go build -o foreman foreman.go service_manager.go services_graph.go procfile_parser.go
