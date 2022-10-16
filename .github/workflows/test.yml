@@ -20,4 +20,4 @@ jobs:
       run: go test ./*.go
 
     - name: run integration test
-      run: ./tests/integration_test.sh
+      run: ./integration_test.sh
