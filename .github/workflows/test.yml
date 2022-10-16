@@ -17,7 +17,7 @@ jobs:
         go-version: 1.18
 
     - name: run unit tests
-      run: go test ./pkg/*.go
+      run: go test ./*.go
 
     - name: run integration test
       run: ./tests/integration_test.sh
